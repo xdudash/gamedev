@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neon Deity — Web Clicker</title>
+  <style>
+    :root {
+      --bg: #080b16;
+      --panel: rgba(16, 22, 43, 0.92);
+      --panel-2: rgba(25, 34, 65, 0.92);
+      --text: #eef5ff;
+      --muted: #91a0c2;
+      --accent: #48e2ff;
+      --accent-2: #9b5cff;
+      --good: #55f2a8;
+      --warn: #ffd166;
+      --danger: #ff5c8a;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 80px rgba(0, 0, 0, 0.45);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 20%, rgba(72, 226, 255, 0.20), transparent 32%),
+        radial-gradient(circle at 80% 10%, rgba(155, 92, 255, 0.22), transparent 32%),
+        radial-gradient(circle at 50% 90%, rgba(85, 242, 168, 0.10), transparent 30%),
+        var(--bg);
+      overflow-x: hidden;
+    }
+
+    .wrap {
+      width: min(1280px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 24px 0 42px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .logo {
+      width: 66px;
+      height: 66px;
+      border-radius: 18px;
+      background:
+        linear-gradient(145deg, rgba(72,226,255,.9), rgba(155,92,255,.75)),
+        radial-gradient(circle, white, transparent 45%);
+      box-shadow: 0 0 34px rgba(72,226,255,.35);
+      display: grid;
+      place-items: center;
+      font-size: 30px;
+      font-weight: 900;
+      color: #08101f;
+      user-select: none;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 46px);
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .subtitle {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button {
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.04));
+      color: var(--text);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+      user-select: none;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: rgba(72,226,255,.55);
+      background: linear-gradient(180deg, rgba(72,226,255,.18), rgba(255,255,255,.05));
+    }
+
+    button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .danger { border-color: rgba(255, 92, 138, 0.35); }
+    .primary {
+      background: linear-gradient(135deg, rgba(72,226,255,.85), rgba(155,92,255,.75));
+      color: #07101f;
+      border: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 390px 1fr;
+      gap: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero {
+      padding: 22px;
+      position: sticky;
+      top: 16px;
+      min-height: 610px;
+      overflow: hidden;
+    }
+
+    .currency {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+
+    .coins {
+      font-size: clamp(34px, 5vw, 54px);
+      font-weight: 900;
+      line-height: .95;
+      letter-spacing: -2px;
+      word-break: break-word;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .stat {
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 13px;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 20px;
+      margin-top: 5px;
+    }
+
+    .click-zone {
+      position: relative;
+      display: grid;
+      place-items: center;
+      height: 250px;
+      margin: 18px 0;
+      border-radius: 30px;
+      border: 1px solid rgba(72,226,255,.2);
+      background:
+        radial-gradient(circle at center, rgba(72,226,255,.18), transparent 42%),
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      overflow: hidden;
+    }
+
+    .orb {
+      width: 158px;
+      height: 158px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.28);
+      background:
+        radial-gradient(circle at 32% 25%, #fff, rgba(255,255,255,.12) 18%, transparent 24%),
+        radial-gradient(circle at 50% 50%, rgba(72,226,255,1), rgba(155,92,255,.9) 50%, rgba(8,11,22,.7) 76%);
+      box-shadow:
+        0 0 30px rgba(72,226,255,.55),
+        inset 0 0 35px rgba(255,255,255,.25);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-size: 46px;
+      font-weight: 900;
+      color: #06101f;
+      transition: transform .08s ease;
+      user-select: none;
+    }
+
+    .orb:active { transform: scale(.95); }
+
+    .float {
+      position: absolute;
+      pointer-events: none;
+      animation: floatUp .75s ease-out forwards;
+      color: var(--good);
+      font-weight: 900;
+      text-shadow: 0 0 16px rgba(85,242,168,.8);
+    }
+
+    @keyframes floatUp {
+      from { opacity: 1; transform: translateY(0) scale(1); }
+      to { opacity: 0; transform: translateY(-70px) scale(1.2); }
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+
+    .tab.active {
+      background: linear-gradient(135deg, rgba(72,226,255,.75), rgba(155,92,255,.65));
+      color: #08101f;
+      border: 0;
+    }
+
+    .content {
+      padding: 0 18px 18px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 12px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: -0.4px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 16px;
+      min-height: 158px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .tag {
+      color: #08101f;
+      background: var(--accent);
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 900;
+      height: fit-content;
+      white-space: nowrap;
+    }
+
+    .desc {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+      flex: 1;
+    }
+
+    .price {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      color: var(--warn);
+      font-weight: 900;
+    }
+
+    .progress {
+      height: 10px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      border-radius: inherit;
+    }
+
+    .story-box, .prestige-box, .challenge-box {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 18px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .story-box b, .prestige-box b, .challenge-box b { color: var(--text); }
+
+    .achievement-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .achievement {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 12px;
+    }
+
+    .badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,.08);
+      font-weight: 900;
+    }
+
+    .achievement.done .badge {
+      background: linear-gradient(135deg, var(--good), var(--accent));
+      color: #06101f;
+    }
+
+    .hidden { display: none; }
+
+    .log {
+      height: 150px;
+      overflow: auto;
+      padding: 12px;
+      background: rgba(0,0,0,.22);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.70);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      padding: 16px;
+    }
+
+    .modal.open { display: flex; }
+
+    .modal-card {
+      width: min(520px, 100%);
+      background: #111936;
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-card h2 { margin-top: 0; }
+
+    @media (max-width: 950px) {
+      header, .grid { grid-template-columns: 1fr; }
+      .hero { position: static; min-height: auto; }
+      .cards { grid-template-columns: 1fr; }
+      .top-actions { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">◆</div>
+        <div>
+          <h1>Neon Deity</h1>
+          <div class="subtitle">Веб-аналог idle/clicker игры: клики, апгрейды, история, челленджи, престиж и офлайн-прогресс.</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button id="saveBtn">Сохранить</button>
+        <button id="exportBtn">Экспорт</button>
+        <button id="importBtn">Импорт</button>
+        <button class="danger" id="resetBtn">Сброс</button>
+      </div>
+    </header>
+
+    <main class="grid">
+      <aside class="panel hero">
+        <div class="currency">
+          <div class="label">A-Coins</div>
+          <div class="coins" id="coins">0</div>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><span class="label">За клик</span><b id="perClick">1</b></div>
+          <div class="stat"><span class="label">В секунду</span><b id="perSecond">0</b></div>
+          <div class="stat"><span class="label">Престиж</span><b id="prestigeMult">x1.00</b></div>
+          <div class="stat"><span class="label">Всего кликов</span><b id="totalClicks">0</b></div>
+        </div>
+
+        <div class="click-zone" id="clickZone">
+          <div class="orb" id="orb">A</div>
+        </div>
+
+        <button class="primary" id="bigClickBtn" style="width:100%; padding: 15px; font-size: 16px;">Создать A-Coin</button>
+
+        <div style="height:14px"></div>
+        <div class="log" id="log"></div>
+      </aside>
+
+      <section class="panel">
+        <div class="tabs">
+          <button class="tab active" data-tab="upgrades">Апгрейды</button>
+          <button class="tab" data-tab="automation">Автоматизация</button>
+          <button class="tab" data-tab="prestige">Престиж</button>
+          <button class="tab" data-tab="challenges">Челленджи</button>
+          <button class="tab" data-tab="story">История</button>
+          <button class="tab" data-tab="achievements">Достижения</button>
+        </div>
+
+        <div class="content">
+          <div id="tab-upgrades" class="tab-content">
+            <div class="section-title">
+              <h2>Апгрейды клика</h2>
+              <span class="label">Усиливают ручной доход</span>
+            </div>
+            <div class="cards" id="upgradesList"></div>
+          </div>
+
+          <div id="tab-automation" class="tab-content hidden">
+            <div class="section-title">
+              <h2>Автоматизация</h2>
+              <span class="label">Даёт A-Coins каждую секунду</span>
+            </div>
+            <div class="cards" id="generatorsList"></div>
+          </div>
+
+          <div id="tab-prestige" class="tab-content hidden">
+            <div class="section-title">
+              <h2>Престиж</h2>
+              <span class="label">Сброс ради постоянного бонуса</span>
+            </div>
+            <div class="prestige-box">
+              <p><b>Digital Shards:</b> <span id="shards">0</span></p>
+              <p><b>Доступно после сброса:</b> <span id="nextShards">0</span> shards</p>
+              <p>Каждый shard даёт +5% ко всем доходам. Престиж сбрасывает монеты, апгрейды и генераторы, но оставляет shards и достижения.</p>
+              <button class="primary" id="prestigeBtn">Сделать престиж</button>
+            </div>
+          </div>
+
+          <div id="tab-challenges" class="tab-content hidden">
+            <div class="section-title">
+              <h2>Челленджи</h2>
+              <span class="label">Условия усложняются, награды остаются</span>
+            </div>
+            <div class="cards" id="challengesList"></div>
+          </div>
+
+          <div id="tab-story" class="tab-content hidden">
+            <div class="section-title">
+              <h2>История мира</h2>
+              <span class="label">Открывается по прогрессу</span>
+            </div>
+            <div class="story-box" id="storyBox"></div>
+          </div>
+
+          <div id="tab-achievements" class="tab-content hidden">
+            <div class="section-title">
+              <h2>Достижения</h2>
+              <span class="label">Небольшие цели для прогресса</span>
+            </div>
+            <div class="achievement-list" id="achievementList"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" id="importModal">
+    <div class="modal-card">
+      <h2>Импорт сохранения</h2>
+      <p class="desc">Вставь код сохранения ниже.</p>
+      <textarea id="importText" style="width:100%; height:120px; border-radius:16px; padding:12px; background:#080b16; color:white; border:1px solid var(--border);"></textarea>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+        <button id="closeImport">Отмена</button>
+        <button class="primary" id="applyImport">Импортировать</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SAVE_KEY = 'neon_deity_save_v1';
+
+    const baseState = {
+      coins: 0,
+      totalCoins: 0,
+      totalClicks: 0,
+      shards: 0,
+      lastSave: Date.now(),
+      upgrades: {},
+      generators: {},
+      challenges: {},
+      achievements: {},
+      log: []
+    };
+
+    let state = loadState();
+
+    const upgrades = [
+      { id: 'cursor', name: 'Neon Cursor', baseCost: 15, scale: 1.18, addClick: 1, desc: 'Усиливает каждый ручной клик. Базовый и самый выгодный старт.' },
+      { id: 'double', name: 'Double Pulse', baseCost: 120, scale: 1.28, multClick: 0.18, desc: 'Каждый уровень добавляет процентный бонус к клику.' },
+      { id: 'crystal', name: 'Crystal Booster', baseCost: 800, scale: 1.35, addClick: 12, desc: 'Стабильный скачок силы клика для середины игры.' },
+      { id: 'quantum', name: 'Quantum Touch', baseCost: 6500, scale: 1.42, multClick: 0.35, desc: 'Мультипликатор клика для быстрого выхода в престиж.' }
+    ];
+
+    const generators = [
+      { id: 'bot', name: 'Auto Bot', baseCost: 50, scale: 1.16, cps: 0.4, desc: 'Первый бот, который добывает монеты без кликов.' },
+      { id: 'farm', name: 'Server Farm', baseCost: 300, scale: 1.20, cps: 2.2, desc: 'Маленькая серверная ферма для стабильного пассивного дохода.' },
+      { id: 'ai', name: 'AI Ritual', baseCost: 2200, scale: 1.25, cps: 14, desc: 'Алгоритм, который превращает пустоту в A-Coins.' },
+      { id: 'core', name: 'Digital Core', baseCost: 16000, scale: 1.32, cps: 90, desc: 'Ядро цифрового мира. Дорого, но мощно.' },
+      { id: 'oracle', name: 'Oracle Network', baseCost: 120000, scale: 1.38, cps: 620, desc: 'Сеть предиктивных нод, добывающих монеты из будущего.' }
+    ];
+
+    const challenges = [
+      { id: 'silent', name: 'Silent World', goal: 5000, reward: 0.12, desc: 'Достигни 5 000 total coins. Награда: +12% ко всем доходам.' },
+      { id: 'slow', name: 'Slow Protocol', goal: 50000, reward: 0.20, desc: 'Достигни 50 000 total coins. Награда: +20% ко всем доходам.' },
+      { id: 'void', name: 'Void Contract', goal: 500000, reward: 0.35, desc: 'Достигни 500 000 total coins. Награда: +35% ко всем доходам.' }
+    ];
+
+    const achievements = [
+      { id: 'click10', icon: '10', name: 'Первые клики', desc: 'Сделать 10 кликов.', check: () => state.totalClicks >= 10 },
+      { id: 'coin1k', icon: '1K', name: 'Первый капитал', desc: 'Заработать всего 1 000 A-Coins.', check: () => state.totalCoins >= 1000 },
+      { id: 'coin100k', icon: '100K', name: 'Цифровой магнат', desc: 'Заработать всего 100 000 A-Coins.', check: () => state.totalCoins >= 100000 },
+      { id: 'cps100', icon: 'CPS', name: 'Автоматическая машина', desc: 'Дойти до 100 A-Coins/sec.', check: () => getCps() >= 100 },
+      { id: 'prestige1', icon: '◆', name: 'Перерождение', desc: 'Сделать первый престиж.', check: () => state.shards > 0 }
+    ];
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(SAVE_KEY);
+        if (!saved) return structuredClone(baseState);
+        return { ...structuredClone(baseState), ...JSON.parse(saved) };
+      } catch {
+        return structuredClone(baseState);
+      }
+    }
+
+    function saveState() {
+      state.lastSave = Date.now();
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    }
+
+    function addLog(text) {
+      const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+      state.log.unshift(`[${time}] ${text}`);
+      state.log = state.log.slice(0, 20);
+    }
+
+    function fmt(num) {
+      if (!isFinite(num)) return '∞';
+      if (num < 1000) return Math.floor(num).toString();
+      const units = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi'];
+      let u = 0;
+      while (num >= 1000 && u < units.length - 1) { num /= 1000; u++; }
+      return `${num.toFixed(num >= 100 ? 0 : num >= 10 ? 1 : 2)}${units[u]}`;
+    }
+
+    function level(collection, id) {
+      return collection[id] || 0;
+    }
+
+    function cost(item, collection) {
+      return Math.ceil(item.baseCost * Math.pow(item.scale, level(collection, item.id)));
+    }
+
+    function prestigeMultiplier() {
+      return 1 + state.shards * 0.05;
+    }
+
+    function challengeMultiplier() {
+      return 1 + challenges.reduce((sum, ch) => sum + (state.challenges[ch.id] ? ch.reward : 0), 0);
+    }
+
+    function achievementMultiplier() {
+      const done = Object.values(state.achievements).filter(Boolean).length;
+      return 1 + done * 0.02;
+    }
+
+    function globalMultiplier() {
+      return prestigeMultiplier() * challengeMultiplier() * achievementMultiplier();
+    }
+
+    function getClickPower() {
+      let flat = 1;
+      let mult = 1;
+      for (const u of upgrades) {
+        const lvl = level(state.upgrades, u.id);
+        if (u.addClick) flat += u.addClick * lvl;
+        if (u.multClick) mult += u.multClick * lvl;
+      }
+      return flat * mult * globalMultiplier();
+    }
+
+    function getCps() {
+      let cps = 0;
+      for (const g of generators) cps += g.cps * level(state.generators, g.id);
+      return cps * globalMultiplier();
+    }
+
+    function earn(amount) {
+      state.coins += amount;
+      state.totalCoins += amount;
+    }
+
+    function clickCoin(e) {
+      const amount = getClickPower();
+      earn(amount);
+      state.totalClicks++;
+      spawnFloat(`+${fmt(amount)}`, e);
+      checkUnlocks();
+      render();
+    }
+
+    function spawnFloat(text, e) {
+      const zone = document.getElementById('clickZone');
+      const rect = zone.getBoundingClientRect();
+      const el = document.createElement('div');
+      el.className = 'float';
+      el.textContent = text;
+      const x = e ? e.clientX - rect.left : rect.width / 2;
+      const y = e ? e.clientY - rect.top : rect.height / 2;
+      el.style.left = `${Math.max(20, Math.min(rect.width - 80, x))}px`;
+      el.style.top = `${Math.max(20, Math.min(rect.height - 30, y))}px`;
+      zone.appendChild(el);
+      setTimeout(() => el.remove(), 760);
+    }
+
+    function buy(item, type) {
+      const collection = type === 'upgrade' ? state.upgrades : state.generators;
+      const price = cost(item, collection);
+      if (state.coins < price) return;
+      state.coins -= price;
+      collection[item.id] = level(collection, item.id) + 1;
+      addLog(`Куплено: ${item.name} ур. ${collection[item.id]}`);
+      checkUnlocks();
+      render();
+    }
+
+    function nextShards() {
+      if (state.totalCoins < 10000) return 0;
+      return Math.floor(Math.sqrt(state.totalCoins / 10000));
+    }
+
+    function doPrestige() {
+      const gain = nextShards();
+      if (gain <= 0) return;
+      if (!confirm(`Сделать престиж и получить ${gain} shards? Монеты, апгрейды и генераторы будут сброшены.`)) return;
+      state.shards += gain;
+      state.coins = 0;
+      state.totalCoins = 0;
+      state.upgrades = {};
+      state.generators = {};
+      addLog(`Престиж выполнен. Получено shards: ${gain}`);
+      checkUnlocks();
+      render();
+      saveState();
+    }
+
+    function completeChallenge(ch) {
+      if (state.challenges[ch.id]) return;
+      if (state.totalCoins < ch.goal) return;
+      state.challenges[ch.id] = true;
+      addLog(`Челлендж выполнен: ${ch.name}`);
+      render();
+    }
+
+    function checkUnlocks() {
+      for (const a of achievements) {
+        if (!state.achievements[a.id] && a.check()) {
+          state.achievements[a.id] = true;
+          addLog(`Достижение открыто: ${a.name}`);
+        }
+      }
+      for (const ch of challenges) {
+        if (!state.challenges[ch.id] && state.totalCoins >= ch.goal) {
+          state.challenges[ch.id] = true;
+          addLog(`Челлендж выполнен: ${ch.name}`);
+        }
+      }
+    }
+
+    function offlineProgress() {
+      const now = Date.now();
+      const diff = Math.max(0, Math.floor((now - (state.lastSave || now)) / 1000));
+      if (diff < 10) return;
+      const capped = Math.min(diff, 60 * 60 * 8);
+      const gain = getCps() * capped * 0.75;
+      if (gain > 0) {
+        earn(gain);
+        addLog(`Офлайн-прогресс за ${Math.floor(capped / 60)} мин: +${fmt(gain)} A-Coins`);
+      }
+    }
+
+    function renderCards() {
+      const upgradeHtml = upgrades.map(u => {
+        const lvl = level(state.upgrades, u.id);
+        const price = cost(u, state.upgrades);
+        const can = state.coins >= price;
+        const power = u.addClick ? `+${fmt(u.addClick)} к клику` : `+${Math.round(u.multClick * 100)}% к клику`;
+        return `
+          <div class="card">
+            <div class="card-head"><h3>${u.name}</h3><span class="tag">ур. ${lvl}</span></div>
+            <div class="desc">${u.desc}<br><b style="color:var(--text)">${power}</b></div>
+            <div class="price"><span>${fmt(price)} A</span><button ${can ? '' : 'disabled'} onclick="buyById('${u.id}', 'upgrade')">Купить</button></div>
+          </div>`;
+      }).join('');
+
+      const generatorHtml = generators.map(g => {
+        const lvl = level(state.generators, g.id);
+        const price = cost(g, state.generators);
+        const can = state.coins >= price;
+        return `
+          <div class="card">
+            <div class="card-head"><h3>${g.name}</h3><span class="tag">x${lvl}</span></div>
+            <div class="desc">${g.desc}<br><b style="color:var(--text)">+${fmt(g.cps * globalMultiplier())}/sec за единицу</b></div>
+            <div class="price"><span>${fmt(price)} A</span><button ${can ? '' : 'disabled'} onclick="buyById('${g.id}', 'generator')">Купить</button></div>
+          </div>`;
+      }).join('');
+
+      document.getElementById('upgradesList').innerHTML = upgradeHtml;
+      document.getElementById('generatorsList').innerHTML = generatorHtml;
+    }
+
+    window.buyById = function(id, type) {
+      const list = type === 'upgrade' ? upgrades : generators;
+      const item = list.find(x => x.id === id);
+      if (item) buy(item, type);
+    };
+
+    function renderChallenges() {
+      document.getElementById('challengesList').innerHTML = challenges.map(ch => {
+        const done = state.challenges[ch.id];
+        const pct = Math.min(100, (state.totalCoins / ch.goal) * 100);
+        return `
+          <div class="card">
+            <div class="card-head"><h3>${ch.name}</h3><span class="tag">${done ? 'готово' : fmt(ch.goal)}</span></div>
+            <div class="desc">${ch.desc}</div>
+            <div class="progress"><div class="bar" style="width:${pct}%"></div></div>
+            <button ${done || state.totalCoins < ch.goal ? 'disabled' : ''} onclick="completeChallengeById('${ch.id}')">Забрать награду</button>
+          </div>`;
+      }).join('');
+    }
+
+    window.completeChallengeById = function(id) {
+      const ch = challenges.find(x => x.id === id);
+      if (ch) completeChallenge(ch);
+    };
+
+    function renderAchievements() {
+      document.getElementById('achievementList').innerHTML = achievements.map(a => {
+        const done = !!state.achievements[a.id];
+        return `
+          <div class="achievement ${done ? 'done' : ''}">
+            <div class="badge">${done ? '✓' : a.icon}</div>
+            <div><b>${a.name}</b><div class="desc">${a.desc}</div></div>
+          </div>`;
+      }).join('');
+    }
+
+    function renderStory() {
+      const tc = state.totalCoins;
+      const parts = [
+        '<p><b>Глава 1. Пустой экран.</b><br>Ты просыпаешься в цифровом мире. Здесь нет людей, городов и правил. Только первый A-Coin и странный импульс в центре экрана.</p>'
+      ];
+      if (tc >= 1000) parts.push('<p><b>Глава 2. Сигнал.</b><br>Первые боты начинают собирать монеты сами. Мир отвечает: где-то в темноте загорается серверная сетка.</p>');
+      if (tc >= 25000) parts.push('<p><b>Глава 3. Алгоритм.</b><br>Ты понимаешь, что A-Coins — это не валюта. Это фрагменты доступа к управлению симуляцией.</p>');
+      if (tc >= 250000) parts.push('<p><b>Глава 4. Ядро.</b><br>Digital Core открывает новую возможность: сбросить форму мира и вернуться сильнее через престиж.</p>');
+      if (state.shards > 0) parts.push('<p><b>Глава 5. Перерождение.</b><br>Ты больше не игрок. Ты архитектор системы. Каждый shard оставляет след даже после полного сброса.</p>');
+      document.getElementById('storyBox').innerHTML = parts.join('');
+    }
+
+    function render() {
+      document.getElementById('coins').textContent = fmt(state.coins);
+      document.getElementById('perClick').textContent = fmt(getClickPower());
+      document.getElementById('perSecond').textContent = fmt(getCps());
+      document.getElementById('prestigeMult').textContent = `x${globalMultiplier().toFixed(2)}`;
+      document.getElementById('totalClicks').textContent = fmt(state.totalClicks);
+      document.getElementById('shards').textContent = fmt(state.shards);
+      document.getElementById('nextShards').textContent = fmt(nextShards());
+      document.getElementById('prestigeBtn').disabled = nextShards() <= 0;
+      document.getElementById('log').innerHTML = state.log.length ? state.log.map(x => `<div>${x}</div>`).join('') : 'Лог событий пока пуст.';
+      renderCards();
+      renderChallenges();
+      renderAchievements();
+      renderStory();
+    }
+
+    document.querySelectorAll('.tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+        document.getElementById(`tab-${btn.dataset.tab}`).classList.remove('hidden');
+      });
+    });
+
+    document.getElementById('orb').addEventListener('click', clickCoin);
+    document.getElementById('bigClickBtn').addEventListener('click', clickCoin);
+    document.getElementById('prestigeBtn').addEventListener('click', doPrestige);
+    document.getElementById('saveBtn').addEventListener('click', () => { saveState(); addLog('Игра сохранена.'); render(); });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if (!confirm('Полностью сбросить сохранение?')) return;
+      localStorage.removeItem(SAVE_KEY);
+      state = structuredClone(baseState);
+      addLog('Сохранение сброшено.');
+      render();
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', async () => {
+      saveState();
+      const code = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+      await navigator.clipboard.writeText(code).catch(() => {});
+      alert('Код сохранения скопирован в буфер. Если не скопировался — вот он:\n\n' + code);
+    });
+
+    const modal = document.getElementById('importModal');
+    document.getElementById('importBtn').addEventListener('click', () => modal.classList.add('open'));
+    document.getElementById('closeImport').addEventListener('click', () => modal.classList.remove('open'));
+    document.getElementById('applyImport').addEventListener('click', () => {
+      try {
+        const txt = document.getElementById('importText').value.trim();
+        const imported = JSON.parse(decodeURIComponent(escape(atob(txt))));
+        state = { ...structuredClone(baseState), ...imported };
+        saveState();
+        modal.classList.remove('open');
+        addLog('Сохранение импортировано.');
+        render();
+      } catch {
+        alert('Не получилось импортировать код сохранения.');
+      }
+    });
+
+    setInterval(() => {
+      const gain = getCps() / 10;
+      if (gain > 0) earn(gain);
+      checkUnlocks();
+      render();
+    }, 100);
+
+    setInterval(saveState, 10000);
+
+    offlineProgress();
+    addLog('Добро пожаловать в Neon Deity.');
+    render();
+  </script>
+</body>
+</html>
